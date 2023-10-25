@@ -1,23 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { render, Printer, Text } from "react-thermal-printer";
+
+async function handlePrinting() {
+  try {
+    const data = await render(
+      <Printer type="epson">
+        <Text>Hello World</Text>
+      </Printer>
+    );
+
+    const port = await window.navigator.serial.requestPort();
+    await port.open({ baudRate: 9600 });
+
+    const writer = port.writable?.getWriter();
+    if (writer != null) {
+      await writer.write(data);
+      writer.releaseLock();
+    }
+
+    // Properly close the port after printing
+    await port.close();
+  } catch (error) {
+    console.error("Printing failed:", error);
+  }
+}
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <button onClick={handlePrinting}>Print</button>
+      <div>App is working</div>
     </div>
   );
 }
